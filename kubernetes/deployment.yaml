@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: compounder
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: compounder
+  template:
+    metadata:
+      labels:
+        app: compounder
+    spec:
+      containers:
+        - name: compounder
+          image: compounder:latest
+          env:
+            - name: GRPC_ENDPOINT
+              value: "grpc.testnet-1.nibiru.fi:443"
+            - name: GRPC_INSECURE
+              value: "false"
+            - name: CHAIN_ID
+              value: "nibiru-testnet-1"
+            - name: COMPOUNDER_MNEMONIC
+              value: "guard cream sadness conduct invite crumble clock pudding hole grit liar hotel maid produce squeeze return argue turtle know drive eight casino maze host"
+            - name: CSV_PATH
+              value: "data/validator_redelegation_ratio.csv"
+            - name: COMPOUNDER_CONTRACT_ADDRESS
+              value: "nibi1xr3rq8yvd7qplsw5yx90ftsr2zdhg4e9z60h5duusgxpv72hud3ss00k55"
+            - name: COMPOUNDER_FEE_INITIAL
+              value: "5000"
+            - name: COMPOUNDER_GAS_LIMIT
+              value: "200000"
