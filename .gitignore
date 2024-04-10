@@ -16,3 +16,5 @@ dist
 coverage.txt
 temp
 .env
+
+cmd/*
