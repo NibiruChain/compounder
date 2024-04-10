@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"math"
 	"os"
@@ -35,7 +36,7 @@ type Compounder struct {
 }
 
 type StakeMsg struct {
-	Share     uint64 `json:"share"`
+	Share     string `json:"share"`
 	Validator string `json:"validator"`
 }
 
@@ -86,7 +87,7 @@ func (compounder *Compounder) ClaimRewards() {
 
 func (compounder *Compounder) Compound() {
 	// read current nibi balance
-	balance := compounder.ChainClient.QueryAccountBalance(compounder.Account.GetAddressStr())
+	balance := compounder.ChainClient.QueryAccountBalance(config.CompounderContractAddress)
 
 	// we will stake the whole balance minus 1 nibi for fees
 	stakeAmount := balance.AmountOf("unibi").Sub(sdk.NewInt(1))
@@ -94,6 +95,8 @@ func (compounder *Compounder) Compound() {
 		compounder.LogError("Insufficient balance to stake", "balance", balance.AmountOf("unibi"))
 		return
 	}
+
+	compounder.LogInfo("Staking ", stakeAmount, " unibi")
 
 	file, err := os.Open(config.CsvPath)
 	if err != nil {
@@ -121,7 +124,7 @@ func (compounder *Compounder) Compound() {
 		}
 
 		stakeMsg := StakeMsg{
-			Share:     share,
+			Share:     fmt.Sprintf("%d", share),
 			Validator: validatorAddress,
 		}
 		stakeMsgs = append(stakeMsgs, stakeMsg)
@@ -130,6 +133,7 @@ func (compounder *Compounder) Compound() {
 	msgData := map[string]interface{}{
 		"stake": map[string]interface{}{
 			"stake_msgs": stakeMsgs,
+			"amount":     stakeAmount,
 		},
 	}
 
