@@ -17,7 +17,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	txTypes "github.com/cosmos/cosmos-sdk/types/tx"
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/nibiruchain/tooling/config"
+	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/nibiruchain/compounder/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
@@ -218,24 +219,16 @@ func (chainClient *ChainClient) GetAccountNumbers(address string) AccountNumbers
 }
 
 func (chainClient *ChainClient) QueryAccountBalance(address string) sdk.Coins {
-	queryClient := authTypes.NewQueryClient(chainClient.grpcConn)
-	resp, err := queryClient.Bank(context.Background(), &banktypes.QueryBalanceRequest{
+	queryClient := bankTypes.NewQueryClient(chainClient.grpcConn)
+	resp, err := queryClient.AllBalances(context.Background(), &bankTypes.QueryAllBalancesRequest{
 		Address: address,
 	})
 	if err != nil {
-		slog.Error("Error getting account", "err", err)
-		panic(err)
-	}
-	// register auth interface
-
-	var acc authTypes.AccountI
-	err = chainClient.encCfg.InterfaceRegistry.UnpackAny(resp.Account, &acc)
-	if err != nil {
-		slog.Error("Error unpacking account balance", "err", err)
+		slog.Error("Error getting account balance", "err", err)
 		panic(err)
 	}
 
-	return acc.GetCoins()
+	return resp.Balances
 }
 
 func (record *KeyringRecord) GetAddressStr() string {

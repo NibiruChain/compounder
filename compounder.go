@@ -41,15 +41,18 @@ type StakeMsg struct {
 
 func NewCompounder() Compounder {
 	chainClient := utils.NewChainClient(config.ChainId, utils.GetGRPCConnection())
+
 	compounder := Compounder{
 		ChainClient: chainClient,
 		Account:     chainClient.GetOrAddAccount("compounder", config.CompounderMnemonic),
 	}
 
+	compounder.LogInfo("Compounder initialized with address ", compounder.Account.GetAddressStr())
+
 	return compounder
 }
 
-func (compounder *Compounder) Redeem() {
+func (compounder *Compounder) ClaimRewards() {
 	msgData := map[string]interface{}{
 		"claim_rewards": map[string]interface{}{},
 	}
@@ -67,8 +70,6 @@ func (compounder *Compounder) Redeem() {
 		Funds:    sdk.NewCoins(),
 	}
 
-	// we send one message per pair since we don't want a single failure
-	// to prevent the other pairs from being repegged.
 	options := utils.SendMsgOptions{
 		Messages:     []sdk.Msg{&msg},
 		SignerRecord: compounder.Account,
@@ -85,16 +86,12 @@ func (compounder *Compounder) Redeem() {
 
 func (compounder *Compounder) Compound() {
 	// read current nibi balance
-	balance, err := compounder.ChainClient.GetAccountBalance(compounder.Account.GetAddressStr())
-	if err != nil {
-		compounder.LogError("Error getting account balance", "err", err)
-		return
-	}
+	balance := compounder.ChainClient.QueryAccountBalance(compounder.Account.GetAddressStr())
 
 	// we will stake the whole balance minus 1 nibi for fees
-	stakeAmount := balance.Amount.Sub(sdk.NewInt(1))
+	stakeAmount := balance.AmountOf("unibi").Sub(sdk.NewInt(1))
 	if stakeAmount.IsNegative() {
-		compounder.LogError("Insufficient balance to stake", "balance", balance.Amount)
+		compounder.LogError("Insufficient balance to stake", "balance", balance.AmountOf("unibi"))
 		return
 	}
 
