@@ -1,13 +1,12 @@
-FROM golang:1.21 AS builder
+FROM golang:1.21-alpine AS builder
 
 WORKDIR /app
+COPY go.sum go.mod ./
+RUN go mod download
 COPY . .
-RUN go mod tidy
-ENV CGO_ENABLED=0 GOOS=linux GOARCH=arm64
-RUN go build -o compounder ./cmd/main.go
-RUN chmod +x compounder
+RUN CGO_ENABLED=0 go build -o compounder ./cmd/main.go
 
-FROM alpine:latest
-WORKDIR /app
+FROM gcr.io/distroless/static
+WORKDIR /
 COPY --from=builder /app/compounder .
-CMD ["./compounder"]
+CMD ["/compounder"]
