@@ -1,13 +1,10 @@
 FROM golang:1.21 AS builder
 
-ENV GOOS=linux
-# ENV GOARCH=arm64
-
 WORKDIR /app
 COPY . .
-RUN rm -f go.sum
 RUN go mod tidy
-RUN CGO_ENABLED=0 go build -o compounder .
+ENV CGO_ENABLED=0 GOOS=linux GOARCH=arm64
+RUN go build -o compounder ./cmd/main.go
 RUN chmod +x compounder
 
 FROM alpine:latest

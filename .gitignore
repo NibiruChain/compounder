@@ -17,5 +17,4 @@ coverage.txt
 temp
 .env
 
-cmd/*
 compounder
