@@ -9,6 +9,9 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     steps:
+      - name: Derive registry image
+        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/compounder" >> "$GITHUB_ENV"
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
@@ -29,4 +32,4 @@ jobs:
         with:
           push: true
           platforms: linux/amd64
-          tags: ghcr.io/nibiruchain/compounder:latest,ghcr.io/nibiruchain/compounder:${{ steps.get_version.outputs.version-without-v }}
+          tags: ${{ env.IMAGE }}:latest,${{ env.IMAGE }}:${{ steps.get_version.outputs.version-without-v }}
