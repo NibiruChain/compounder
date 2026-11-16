@@ -5,6 +5,10 @@ on:
     tags:
       - "*"
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   docker:
     runs-on: ubuntu-latest
@@ -29,4 +33,4 @@ jobs:
         with:
           push: true
           platforms: linux/amd64
-          tags: ghcr.io/nibiruchain/compounder:latest,ghcr.io/nibiruchain/compounder:${{ steps.get_version.outputs.version-without-v }}
+          tags: ghcr.io/saidotfun/compounder:latest,ghcr.io/saidotfun/compounder:${{ steps.get_version.outputs.version-without-v }}
